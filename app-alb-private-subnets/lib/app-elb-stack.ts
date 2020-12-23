@@ -1,12 +1,11 @@
 import * as cdk from '@aws-cdk/core';
-import {Port, IVpc, CfnVPC, Vpc} from "@aws-cdk/aws-ec2";
+import {Port, IVpc, Vpc} from "@aws-cdk/aws-ec2";
 import {ApplicationTargetGroup, ListenerCondition} from "@aws-cdk/aws-elasticloadbalancingv2";
 import {InstanceTarget} from "@aws-cdk/aws-elasticloadbalancingv2-targets";
 import {EC2, CustomInstance} from "./ec2"
 import {ALB, CustomApplicationLoadBalancer} from "./load-balancer";
 import {STACK_NAME, AVAILABILITY_ZONES} from "./utils";
 import VPC from "./vpc";
-import {Aws, Fn} from "@aws-cdk/core";
 
 export class InfraStack extends cdk.Stack {
     vpc: IVpc;

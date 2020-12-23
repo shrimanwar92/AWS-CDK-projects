@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a53c9c4b-79c4-4a2d-a300-51d8a469c53d" name="Default Changelist" comment="" />
+    <list default="true" id="a53c9c4b-79c4-4a2d-a300-51d8a469c53d" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/app-elb-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/app-elb-stack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/ec2.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ec2.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,7 +49,7 @@
       <workItem from="1607930682904" duration="13628000" />
       <workItem from="1608193353880" duration="592000" />
       <workItem from="1608618560196" duration="582000" />
-      <workItem from="1608699309417" duration="27425000" />
+      <workItem from="1608699309417" duration="27778000" />
     </task>
     <servers />
   </component>

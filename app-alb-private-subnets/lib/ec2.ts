@@ -3,7 +3,6 @@ import {STACK_NAME} from "./utils";
 import {ManagedPolicy, Role, IRole, ServicePrincipal} from "@aws-cdk/aws-iam";
 import {
     ISecurityGroup,
-    Port,
     SecurityGroup,
     IVpc,
     UserData,
