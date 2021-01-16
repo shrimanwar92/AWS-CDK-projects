@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a53c9c4b-79c4-4a2d-a300-51d8a469c53d" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../app-scaling/lib/utils.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/app-elb-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/app-elb-stack.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/ec2.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/ec2.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +27,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../src/fe-nimw-11473-l18n-dt-manage-access-rights" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="npm" />
@@ -50,6 +48,10 @@
       <workItem from="1608193353880" duration="592000" />
       <workItem from="1608618560196" duration="582000" />
       <workItem from="1608699309417" duration="27778000" />
+      <workItem from="1609737897868" duration="3081000" />
+      <workItem from="1609823176704" duration="28000" />
+      <workItem from="1609823276504" duration="594000" />
+      <workItem from="1610797948362" duration="10810000" />
     </task>
     <servers />
   </component>
