@@ -1,7 +1,3 @@
-# NimbusODataServer AWS cloud deployment project
-
-This is a deployment project for NimbusODataServer api.
-
 ## Useful commands
 
  * `npm run build`   compile typescript to js. Run this cmd when you make any changes to .ts file.
@@ -14,7 +10,3 @@ This is a deployment project for NimbusODataServer api.
  * `cdk destroy "*"` deletes all the stacks at once.
  * `cdk destroy <stack-id>` deletes a specific stack.
     Example: `cdk deploy DevStack`.
- 
-## NimbusODataServer deployment architecture
-The following confluence link contains the detailed steps to execute the deployment steps and the architecture diagram.
-https://confluence.tibco.com/pages/viewpage.action?pageId=200343673
