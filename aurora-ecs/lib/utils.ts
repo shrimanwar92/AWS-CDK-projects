@@ -1,0 +1,5 @@
+export const DATABASE_PORT = 5432;
+export const CONTAINER_PORT = 80;
+export const DEFAULT_REPOSITORY_NAME = 'nimbusodataserver';
+export const DATABASE_NAME = 'nimbusdb';
+export const AURORA_ENGINE_VERSION = '10.12';
