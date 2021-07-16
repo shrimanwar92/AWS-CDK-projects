@@ -5,13 +5,11 @@ import {IApplicationLoadBalancer} from "@aws-cdk/aws-elasticloadbalancingv2";
 import {STACK_NAME, AVAILABILITY_ZONES} from "./utils";
 import {IRepository} from "@aws-cdk/aws-ecr";
 import ElasticLoadBalancer from "./elbv2";
-import Container from "./container";
 import ECRRepository from "./repository";
 
 export class DeploymentStack extends Stack {
     vpc: IVpc;
     loadBalancer: ElasticLoadBalancer;
-    container: Container;
     repository: IRepository;
 
     constructor(scope: Construct, id: string, props?: StackProps) {
@@ -29,19 +27,17 @@ export class DeploymentStack extends Stack {
             .create()
             .addListener();
         this.repository = this.getRepository(repositoryName);
-        this.container = new Container(this, {vpc: this.vpc, repository: this.repository})
-            .createFromRepository();
 
         this.logOutputs();
     }
 
     private getRepository(name: string): IRepository {
-        const repoInstance = new ECRRepository(this);
+        const repo = new ECRRepository(this);
 
         if(name) {
-            return repoInstance.fetch(name);
+            return repo.fetch(name);
         }
-        return repoInstance.create();
+        return repo.create();
     }
 
     private createVpc() {
