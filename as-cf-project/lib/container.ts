@@ -17,7 +17,8 @@ import {Duration, Stack} from "@aws-cdk/core";
 import {STACK_NAME} from "./utils";
 
 interface ContainerProps {
-    vpc: IVpc
+    vpc: IVpc,
+    repository: IRepository
 }
 
 export default class Container {
@@ -33,7 +34,18 @@ export default class Container {
         this.props = props;
     }
 
-    createTaskRole(): Container {
+    createFromRepository() {
+        // create task role
+        // create task definition
+        // create container
+        // create fargateService
+        return this.createTaskRole()
+            .createTaskDefinition()
+            .addContainer()
+            .startFargateService();
+    }
+
+    private createTaskRole(): Container {
         this.taskRole =  new Role(this.stack, `task-role`, {
             roleName: `${STACK_NAME}-task-role`,
             assumedBy: new ServicePrincipal("ecs-tasks.amazonaws.com"),
@@ -43,14 +55,7 @@ export default class Container {
         return this;
     }
 
-    create() {
-        // create task role
-        // create task definition
-        // create container
-        // create fargateService
-    }
-
-    createTaskDefinition() {
+    private createTaskDefinition() {
         this.taskDefinition = new FargateTaskDefinition(this.stack, `task-def`, {
             family: `${STACK_NAME}-task-def`,
             taskRole: this.taskRole,
@@ -61,9 +66,9 @@ export default class Container {
         return this;
     }
 
-    addContainer() {
+    private addContainer() {
         this.container = this.taskDefinition.addContainer(`container`, {
-            image: ContainerImage.fromEcrRepository(props.repository),
+            image: ContainerImage.fromEcrRepository(this.props.repository),
             logging: LogDrivers.awsLogs({ streamPrefix: `${STACK_NAME}-log` }),
             entryPoint: ["dotnet", "Nimbus.OData.Server.dll"],
             workingDirectory: "/app",
@@ -73,11 +78,11 @@ export default class Container {
         });
         this.container.addPortMappings({containerPort: 3000, hostPort: 3000});
         this.container.node.addDependency(this.taskDefinition);
-
+        this.container.node.addDependency(this.props.repository);
         return this;
     }
 
-    startFargateService() {
+    private startFargateService() {
         this.fargateService = new FargateService(this.stack, `fargate-service`, {
             serviceName: `${STACK_NAME}-fargate-service`,
             cluster: new Cluster(this.stack, `cluster`, {vpc: this.props.vpc, clusterName: `${STACK_NAME}-cluster` }),
