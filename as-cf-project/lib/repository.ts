@@ -11,11 +11,7 @@ export default class ECRRepository {
     }
 
     create(): IRepository {
-        this.repository = new Repository(this.stack, `create-repository`, { repositoryName: REPO_NAME });
-        new CfnOutput(this.stack, 'RepositoryUri', {
-            value: this.repository.repositoryUri
-        });
-        return this.repository;
+        return new Repository(this.stack, `create-repository`, { repositoryName: REPO_NAME });
     }
 
     fetch(name: string): IRepository {

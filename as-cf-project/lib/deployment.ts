@@ -1,4 +1,4 @@
-import {Construct, StackProps, Stack, CfnParameter} from "@aws-cdk/core";
+import {Construct, StackProps, Stack, CfnParameter, CfnOutput} from "@aws-cdk/core";
 import VPC from "./vpc";
 import {Port, IVpc, Vpc} from "@aws-cdk/aws-ec2";
 import {IApplicationLoadBalancer} from "@aws-cdk/aws-elasticloadbalancingv2";
@@ -30,7 +30,9 @@ export class DeploymentStack extends Stack {
             .addListener();
         this.repository = this.getRepository(repositoryName);
         this.container = new Container(this, {vpc: this.vpc, repository: this.repository})
-            .createFromRepository()
+            .createFromRepository();
+
+        this.logOutputs();
     }
 
     private getRepository(name: string): IRepository {
@@ -55,6 +57,12 @@ export class DeploymentStack extends Stack {
             availabilityZones: AVAILABILITY_ZONES,
             privateSubnetIds: vpc.subnets.private.map(subnet => subnet.ref),
             publicSubnetIds: vpc.subnets.public.map(subnet => subnet.ref)
+        });
+    }
+
+    private logOutputs() {
+        new CfnOutput(this, 'RepositoryUri', {
+            value: this.repository.repositoryUri
         });
     }
 }
