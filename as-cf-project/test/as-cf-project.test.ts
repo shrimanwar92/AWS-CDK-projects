@@ -1,6 +1,6 @@
 import { expect as expectCDK, matchTemplate, MatchStyle } from '@aws-cdk/assert';
 import * as cdk from '@aws-cdk/core';
-import * as AsCfProject from '../lib/as-cf-project-stack';
+/*import * as AsCfProject from '../lib/as-cf-project-stack';
 
 test('Empty Stack', () => {
     const app = new cdk.App();
@@ -10,4 +10,4 @@ test('Empty Stack', () => {
     expectCDK(stack).to(matchTemplate({
       "Resources": {}
     }, MatchStyle.EXACT))
-});
+});*/
