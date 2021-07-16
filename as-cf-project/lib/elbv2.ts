@@ -57,7 +57,7 @@ export default class ElasticLoadBalancer {
         this.listener.addAction("listener-action", {
             action: ListenerAction.fixedResponse(200, {
                 contentType: "text/plain",
-                messageBody: "AAAAAAA RRRRRRR RRRRRRR AAAAAAAAAA"
+                messageBody: "xxx 12345 xxx"
             })
         });
 
