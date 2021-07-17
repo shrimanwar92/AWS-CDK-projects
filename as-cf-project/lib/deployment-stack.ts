@@ -1,14 +1,13 @@
-import {Construct, StackProps, Stack, CfnParameter, CfnOutput} from "@aws-cdk/core";
+import {Construct, StackProps, Stack, CfnParameter, CfnOutput, Fn} from "@aws-cdk/core";
 import VPC from "./vpc";
-import {Port, IVpc, Vpc} from "@aws-cdk/aws-ec2";
-import {IApplicationLoadBalancer} from "@aws-cdk/aws-elasticloadbalancingv2";
-import {STACK_NAME, AVAILABILITY_ZONES} from "./utils";
+import {Vpc} from "@aws-cdk/aws-ec2";
+import {AVAILABILITY_ZONES} from "./utils";
 import {IRepository} from "@aws-cdk/aws-ecr";
 import ElasticLoadBalancer from "./elbv2";
 import ECRRepository from "./repository";
 
 export class DeploymentStack extends Stack {
-    vpc: IVpc;
+    vpc: any;
     loadBalancer: ElasticLoadBalancer;
     repository: IRepository;
 
@@ -17,48 +16,39 @@ export class DeploymentStack extends Stack {
 
         const repositoryName = new CfnParameter(this, "repositoryName", {
             type: "String",
-            description: "Name of the AWS ECR repository with image (Repository name must start with a letter and can only contain lowercase letters, numbers, hyphens, underscores, and forward slashes)"
+            description: "Name of the AWS ECR repository with image (Repository name must start with a letter and can only contain lowercase letters, numbers, hyphens, underscores, and forward slashes)",
+            constraintDescription: "Please provide a repository name to fetch.",
         }).valueAsString;
 
 
         // The code that defines your stack goes here
         this.vpc = this.createVpc();
-        this.loadBalancer = new ElasticLoadBalancer(this, {vpc: this.vpc})
+        this.loadBalancer = new ElasticLoadBalancer(this, {
+            vpc: this.vpc.vpc,
+            gatewayAttachment: this.vpc.gatewayAttachment
+        })
             .create()
             .addListener();
-        this.repository = this.getRepository(repositoryName);
 
-        this.logOutputs();
-    }
-
-    private getRepository(name: string): IRepository {
-        const repo = new ECRRepository(this);
-
-        if(name) {
-            return repo.fetch(name);
-        }
-        return repo.create();
+        this.repository = new ECRRepository(this).fetch(repositoryName);
     }
 
     private createVpc() {
-        const vpc = new VPC(this)
+        const vpcAttrs = new VPC(this)
             .create()
             .createSubnets()
             .createInternetGateway()
             .createNatGateway()
             .createRouteTable();
 
-        return Vpc.fromVpcAttributes(this, "vpcxyz", {
-            vpcId: vpc.vpc.ref,
+        const importedVpc = Vpc.fromVpcAttributes(this, "vpcxyz", {
+            vpcId: vpcAttrs.cfnVpc.ref,
             availabilityZones: AVAILABILITY_ZONES,
-            privateSubnetIds: vpc.subnets.private.map(subnet => subnet.ref),
-            publicSubnetIds: vpc.subnets.public.map(subnet => subnet.ref)
+            privateSubnetIds: vpcAttrs.subnets.private.map(subnet => subnet.ref),
+            publicSubnetIds: vpcAttrs.subnets.public.map(subnet => subnet.ref)
         });
-    }
+        vpcAttrs.vpc = importedVpc;
 
-    private logOutputs() {
-        new CfnOutput(this, 'RepositoryUri', {
-            value: this.repository.repositoryUri
-        });
+        return vpcAttrs;
     }
 }
