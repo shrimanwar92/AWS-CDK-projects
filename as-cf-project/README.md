@@ -1,8 +1,14 @@
 # Welcome to your CDK TypeScript project!
 
-This is a blank project for TypeScript development with CDK.
+The project deploys a node-web-app to ECS fargate service.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+*   A VPC(CfnVpc) with 2 public and 2 private subnets(CfnSubnets).
+*   A internet gateway(CfnInternetGateway) attached to vpc using gateway attachment(CfnVPCGatewayAttachment).
+*   A EIP(CfnEIP) attached to NatGateway(CfnNatGateway). NatGateway are created for both the public subnets.
+*   A route table(CfnRouteTable) for all the subnets. Public route table association uses internet gateway and private route table association uses nat gateway.
+*   A loadbalancer with its own security group that allows traffic on port 80. A listener that will listen on port 80. A security group that allows incoming traffic on port 80.
+*   A fargate service that runs a container which hosts a node-web-app. 
+*   A target group for fargate service, with health check configured. And adding this target group to the listener rules to direct traffic to fargate service.
 
 ## Useful commands
 
