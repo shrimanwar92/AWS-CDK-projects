@@ -10,3 +10,8 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
  * `cdk synth`       emits the synthesized CloudFormation template
  * `cdk deploy DeploymentStack --parameters repositoryName=<path to your ecr repository which already exists>` deploys deployment stack
  * `cdk deploy ContainerStack` deploys container to ECS
+
+
+## Screenshots
+
+![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/cloudformation-stacks.PNG?raw=true)
