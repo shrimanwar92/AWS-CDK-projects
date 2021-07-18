@@ -8,6 +8,7 @@ import {
     LogDrivers,
     ContainerDefinition,
     Secret,
+    ICluster,
 } from "@aws-cdk/aws-ecs";
 import {
     IApplicationListener,
@@ -34,6 +35,8 @@ export default class Container {
     taskRole: Role;
     container: ContainerDefinition;
     fargateService: FargateService;
+
+    private cluster: ICluster;
 
     constructor(stack: Stack, props: ContainerProps) {
         this.stack = stack;
@@ -67,7 +70,7 @@ export default class Container {
             taskRole: this.taskRole,
             executionRole: this.taskRole
         });
-        this.taskDefinition.node.addDependency(this.taskRole);
+        //this.taskDefinition.node.addDependency(this.taskRole);
 
         return this;
     }
@@ -77,22 +80,25 @@ export default class Container {
             image: ContainerImage.fromEcrRepository(this.props.repository),
             containerName: CONTAINER_NAME,
             logging: LogDrivers.awsLogs({ streamPrefix: `${STACK_NAME}-log` }),
-            entryPoint: ["dotnet", "Nimbus.OData.Server.dll"],
+            entryPoint: ["node", "server.js"],
             workingDirectory: "/app",
             secrets: {
                 //ConnectionStrings__DefaultConnection: Secret.fromSsmParameter(props.parameter)
+            },
+            environment: {
+                TEST: "my name is ..."
             }
         });
         this.container.addPortMappings({containerPort: CONTAINER_PORT, hostPort: CONTAINER_PORT});
-        this.container.node.addDependency(this.taskDefinition);
-        this.container.node.addDependency(this.props.repository);
+        //this.container.node.addDependency(this.taskDefinition);
+        //this.container.node.addDependency(this.props.repository);
         return this;
     }
 
     private startFargateService() {
         this.fargateService = new FargateService(this.stack, `fargate-service`, {
             serviceName: `${STACK_NAME}-fargate-service`,
-            cluster: new Cluster(this.stack, `cluster`, {vpc: this.props.vpc, clusterName: `${STACK_NAME}-cluster` }),
+            cluster: this.createCluster(),
             taskDefinition: this.taskDefinition,
             desiredCount: 1,
             vpcSubnets: {
@@ -100,10 +106,10 @@ export default class Container {
             }
         });
 
-        this.fargateService.node.addDependency(this.taskDefinition);
+        //this.fargateService.node.addDependency(this.taskDefinition);
 
         // allow traffic from load balancer to container
-        this.fargateService.connections.allowFrom(this.props.loadBalancerSecurityGroup, Port.tcp(3000), "allow traffic from Lb security group to container port");
+        this.fargateService.connections.allowFrom(this.props.loadBalancerSecurityGroup, Port.tcp(CONTAINER_PORT), "allow traffic from Lb security group to container port");
 
         // allow container to pull ECR image
         const defaultFargateSecurityGroup = this.fargateService.connections.securityGroups[0];
@@ -119,6 +125,11 @@ export default class Container {
         return this;
     }
 
+    private createCluster(): ICluster {
+        this.cluster = new Cluster(this.stack, `cluster`, {vpc: this.props.vpc, clusterName: `${STACK_NAME}-cluster` });
+        return this.cluster;
+    }
+
     private addFargateServiceToLoadBalancerTargetGroup() {
         /*
         * A target group tells a load balancer where to direct traffic to : EC2 instances, fixed IP addresses;
@@ -126,6 +137,10 @@ export default class Container {
         * When creating a load balancer, you create one or more listeners and configure listener rules to direct the traffic
         * to one target group.
         */
+
+        // this health check should be configured properly. If not, target group wont be able to ping the app hoisted by container
+        // the health check endpoint should point to the api-endpoint in the app.
+        // If health check is not configured, the target group wont work and all the target groups will be unhealthy.
         const targetGroup = new ApplicationTargetGroup(this.stack, "target-group", {
             targetGroupName: `${STACK_NAME}-target-group`,
             port: 80,
@@ -134,7 +149,7 @@ export default class Container {
                 containerPort: CONTAINER_PORT
             })],
             healthCheck: {
-                path: "/hc",
+                path: "/",
                 interval: Duration.seconds(30)
             },
             vpc: this.props.vpc
