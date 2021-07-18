@@ -15,3 +15,18 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 ## Screenshots
 
 ![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/cloudformation-stacks.PNG?raw=true)
+
+
+![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/ecr-repo-image.PNG?raw=true)
+
+
+![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/target-group.PNG?raw=true)
+
+
+![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/fargate-task.PNG?raw=true)
+
+
+![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/running-container.PNG?raw=true)
+
+
+![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/output.PNG?raw=true)
