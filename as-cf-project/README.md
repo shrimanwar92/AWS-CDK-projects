@@ -1,4 +1,4 @@
-# Welcome to your CDK TypeScript project!
+# AWS CDK automated deployment thats uses vpc - ELB - Fargate - ECR - containers
 
 The project deploys a node-web-app to ECS fargate service.
 
