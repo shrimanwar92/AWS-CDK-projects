@@ -7,7 +7,6 @@ import {
     FargateTaskDefinition,
     LogDrivers,
     ContainerDefinition,
-    Secret,
     ICluster,
 } from "@aws-cdk/aws-ecs";
 import {
@@ -16,10 +15,8 @@ import {
     ApplicationTargetGroup
 } from '@aws-cdk/aws-elasticloadbalancingv2';
 import {Role, ServicePrincipal} from "@aws-cdk/aws-iam";
-import {StringParameter} from "@aws-cdk/aws-ssm";
-//import {DatabaseStackProps, OdataStack} from './odata-stack';
 import {Duration, Stack} from "@aws-cdk/core";
-import {STACK_NAME, CONTAINER_PORT, CONTAINER_NAME} from "./utils";
+import {STACK_NAME, CONTAINER} from "./utils";
 import AppAutoScaling from "./autoscaling";
 
 export interface ContainerProps {
@@ -49,6 +46,7 @@ export default class Container {
         // create task definition
         // create container
         // create fargateService
+        // setup application autoscaling
         return this.createTaskRole()
             .createTaskDefinition()
             .addContainer()
@@ -79,7 +77,7 @@ export default class Container {
     private addContainer() {
         this.container = this.taskDefinition.addContainer(`container`, {
             image: ContainerImage.fromEcrRepository(this.props.repository),
-            containerName: CONTAINER_NAME,
+            containerName: CONTAINER.NAME,
             logging: LogDrivers.awsLogs({ streamPrefix: `${STACK_NAME}-log` }),
             entryPoint: ["node", "server.js"],
             workingDirectory: "/app",
@@ -90,7 +88,7 @@ export default class Container {
                 TEST: "my name is ..."
             }
         });
-        this.container.addPortMappings({containerPort: CONTAINER_PORT, hostPort: CONTAINER_PORT});
+        this.container.addPortMappings({containerPort: CONTAINER.PORT, hostPort: CONTAINER.PORT});
         return this;
     }
 
@@ -106,7 +104,7 @@ export default class Container {
         });
 
         // allow traffic from load balancer to container
-        this.fargateService.connections.allowFrom(this.props.loadBalancerSecurityGroup, Port.tcp(CONTAINER_PORT), "allow traffic from Lb security group to container port");
+        this.fargateService.connections.allowFrom(this.props.loadBalancerSecurityGroup, Port.tcp(CONTAINER.PORT), "allow traffic from Lb security group to container port");
 
         // allow container to pull ECR image
         const defaultFargateSecurityGroup = this.fargateService.connections.securityGroups[0];
@@ -142,8 +140,8 @@ export default class Container {
             targetGroupName: `${STACK_NAME}-target-group`,
             port: 80,
             targets: [this.fargateService.loadBalancerTarget({
-                containerName: CONTAINER_NAME,
-                containerPort: CONTAINER_PORT
+                containerName: CONTAINER.NAME,
+                containerPort: CONTAINER.PORT
             })],
             healthCheck: {
                 path: "/",
@@ -174,8 +172,10 @@ export default class Container {
     }
 
     private setupAutoScaling(): Container {
-        const target = new AppAutoScaling(this.stack, {cluster: this.cluster, service: this.fargateService})
-            .setupAutoScaling();
+        const target = new AppAutoScaling(this.stack, {
+            cluster: this.cluster,
+            service: this.fargateService
+        }).setupAutoScaling();
         target.node.addDependency(this.fargateService);
         return this;
     }

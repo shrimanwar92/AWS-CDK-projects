@@ -8,7 +8,7 @@ import {
     FargateService,
     ICluster,
 } from "@aws-cdk/aws-ecs";
-import {STACK_NAME} from "./utils";
+import {STACK_NAME, AUTOSCALING} from "./utils";
 
 interface AutoScalingProps {
     cluster: ICluster,
@@ -34,13 +34,13 @@ export default class AppAutoScaling {
             serviceNamespace: ServiceNamespace.ECS
         });
 
-        target.scaleOnSchedule('PrescaleInTheMorning', {
-            schedule: Schedule.cron({ hour: '8', minute: '0' }),
+        target.scaleOnSchedule('UpscaleInTheMorning', {
+            schedule: Schedule.cron({ hour: AUTOSCALING.UP_SCALING_TIME.hour, minute: AUTOSCALING.UP_SCALING_TIME.min }),
             minCapacity: 3,
         });
 
         target.scaleOnSchedule('AllowDownscalingAtNight', {
-            schedule: Schedule.cron({ hour: '20', minute: '0' }),
+            schedule: Schedule.cron({ hour: AUTOSCALING.DOWN_SCALING_TIME.hour, minute: AUTOSCALING.DOWN_SCALING_TIME.min }),
             minCapacity: 1
         });
 

@@ -1,9 +1,9 @@
-const {REPO_NAME} = require('./lib/utils');
+const {REPO_NAME, APPLICATION_DOCKER_IMAGE_PATH} = require('./lib/utils');
 const { spawn, execSync } = require('child_process');
 const AWS = require('aws-sdk');
 process.env.AWS_SDK_LOAD_CONFIG = true;
 
-const repositoryName =  process.argv[2] || "1xxx";
+const repositoryName =  process.argv[2] || REPO_NAME;
 const ecr = new AWS.ECR();
 
 async function main() {
@@ -25,7 +25,7 @@ function buildAndPushImage(repoUri) {
 
     // change directory where dockerfile is present
     // execSync is used because each step is dependant on its previous step
-    process.chdir("./../../source/node-app");
+    process.chdir(APPLICATION_DOCKER_IMAGE_PATH);
     // build
     execSync(`docker build -t ${tag} .`, {stdio: 'inherit'});
     //tag
@@ -59,8 +59,6 @@ async function getRepository() {
     let params = {
         repositoryNames: [repositoryName]
     };
-
-    console.log(repositoryName);
 
     return new Promise((resolve, reject) => {
         ecr.describeRepositories(params, function(err, data) {
