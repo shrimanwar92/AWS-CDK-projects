@@ -20,6 +20,7 @@ import {StringParameter} from "@aws-cdk/aws-ssm";
 //import {DatabaseStackProps, OdataStack} from './odata-stack';
 import {Duration, Stack} from "@aws-cdk/core";
 import {STACK_NAME, CONTAINER_PORT, CONTAINER_NAME} from "./utils";
+import AppAutoScaling from "./autoscaling";
 
 export interface ContainerProps {
     vpc: IVpc,
@@ -51,7 +52,8 @@ export default class Container {
         return this.createTaskRole()
             .createTaskDefinition()
             .addContainer()
-            .startFargateService();
+            .startFargateService()
+            .setupAutoScaling();
     }
 
     private createTaskRole(): Container {
@@ -70,7 +72,6 @@ export default class Container {
             taskRole: this.taskRole,
             executionRole: this.taskRole
         });
-        //this.taskDefinition.node.addDependency(this.taskRole);
 
         return this;
     }
@@ -90,8 +91,6 @@ export default class Container {
             }
         });
         this.container.addPortMappings({containerPort: CONTAINER_PORT, hostPort: CONTAINER_PORT});
-        //this.container.node.addDependency(this.taskDefinition);
-        //this.container.node.addDependency(this.props.repository);
         return this;
     }
 
@@ -105,8 +104,6 @@ export default class Container {
                 subnetType: SubnetType.PRIVATE
             }
         });
-
-        //this.fargateService.node.addDependency(this.taskDefinition);
 
         // allow traffic from load balancer to container
         this.fargateService.connections.allowFrom(this.props.loadBalancerSecurityGroup, Port.tcp(CONTAINER_PORT), "allow traffic from Lb security group to container port");
@@ -155,14 +152,6 @@ export default class Container {
             vpc: this.props.vpc
         });
 
-        /*this.props.listener.addTargetGroups("listener-tg", {
-            priority: 1,
-            targetGroups: [targetGroup],
-            conditions: [
-                ListenerCondition.pathPatterns(['*'])
-            ]
-        });*/
-
         // listener rule
         new CfnListenerRule(this.stack, "listener-rule", {
             actions: [
@@ -182,5 +171,12 @@ export default class Container {
             listenerArn: this.props.listener.listenerArn,
             priority: 1
         });
+    }
+
+    private setupAutoScaling(): Container {
+        const target = new AppAutoScaling(this.stack, {cluster: this.cluster, service: this.fargateService})
+            .setupAutoScaling();
+        target.node.addDependency(this.fargateService);
+        return this;
     }
 }
