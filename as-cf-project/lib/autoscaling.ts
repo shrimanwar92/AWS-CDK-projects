@@ -1,14 +1,7 @@
 import {Stack} from "@aws-cdk/core";
-import {
-    ScalableTarget,
-    ServiceNamespace,
-    Schedule
-} from "@aws-cdk/aws-applicationautoscaling";
-import {
-    FargateService,
-    ICluster,
-} from "@aws-cdk/aws-ecs";
-import {STACK_NAME, AUTOSCALING} from "./utils";
+import {Schedule} from "@aws-cdk/aws-applicationautoscaling";
+import {FargateService, ICluster} from "@aws-cdk/aws-ecs";
+import {AUTOSCALING} from "./utils";
 
 interface AutoScalingProps {
     cluster: ICluster,
@@ -24,26 +17,24 @@ export default class AppAutoScaling {
         this.props = props;
     }
 
-    setupAutoScaling(): ScalableTarget {
-        const target = new ScalableTarget(this.stack, `${STACK_NAME}-sctgt`, {
+    setupAutoScaling(): AppAutoScaling {
+        const target = this.props.service.autoScaleTaskCount({
             minCapacity: 1,
-            maxCapacity: 3,
-            resourceId: `service/${this.props.cluster.clusterName}/${this.props.service.serviceName}`,
-            //role: appAutoscalingRole,
-            scalableDimension: "ecs:service:DesiredCount",
-            serviceNamespace: ServiceNamespace.ECS
+            maxCapacity: 3
         });
 
-        target.scaleOnSchedule('UpscaleInTheMorning', {
+        // the time is in UTC
+        target.scaleOnSchedule('upscale-in-morning', {
             schedule: Schedule.cron({ hour: AUTOSCALING.UP_SCALING_TIME.hour, minute: AUTOSCALING.UP_SCALING_TIME.min }),
             minCapacity: 3,
         });
 
-        target.scaleOnSchedule('AllowDownscalingAtNight', {
+        // the time is in UTC
+        target.scaleOnSchedule('downscale-at-night', {
             schedule: Schedule.cron({ hour: AUTOSCALING.DOWN_SCALING_TIME.hour, minute: AUTOSCALING.DOWN_SCALING_TIME.min }),
             minCapacity: 1
         });
 
-        return target;
+        return this;
     }
 }

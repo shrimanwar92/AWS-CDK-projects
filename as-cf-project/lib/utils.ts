@@ -6,7 +6,7 @@ export const CONTAINER = {
 };
 export const REPO_NAME = '1xxx';
 export const AUTOSCALING = {
-    UP_SCALING_TIME: {hour: "8", min: "0"},
-    DOWN_SCALING_TIME: {hour: "20", min: "0"}
+    UP_SCALING_TIME: {hour: "12", min: "0"}, // the time is in UTC
+    DOWN_SCALING_TIME: {hour: "01", min: "0"} // the time is in UTC
 };
 export const APPLICATION_DOCKER_IMAGE_PATH = "./../../source/node-app";

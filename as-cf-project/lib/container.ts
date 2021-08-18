@@ -171,12 +171,10 @@ export default class Container {
         });
     }
 
-    private setupAutoScaling(): Container {
-        const target = new AppAutoScaling(this.stack, {
+    private setupAutoScaling(): AppAutoScaling {
+        return new AppAutoScaling(this.stack, {
             cluster: this.cluster,
             service: this.fargateService
         }).setupAutoScaling();
-        target.node.addDependency(this.fargateService);
-        return this;
     }
 }

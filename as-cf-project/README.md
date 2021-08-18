@@ -9,6 +9,8 @@ The project deploys a node-web-app to ECS fargate service.
 *   A loadbalancer with its own security group that allows traffic on port 80. A listener that will listen on port 80. A security group that allows incoming traffic on port 80.
 *   A fargate service that runs a container which hosts a node-web-app. 
 *   A target group for fargate service, with health check configured. And adding this target group to the listener rules to direct traffic to fargate service.
+*	Scheduled application auto scaling is enabled for fargate service that upscales 3 fargate tasks at 12:00 UTC and downscales to 1 task at 1:00 UTC. Application load balancer 
+    splits the traffic 1/3 to every task when upscaled because it follows round robin.
 
 ## Useful commands
 
@@ -36,3 +38,8 @@ The project deploys a node-web-app to ECS fargate service.
 
 
 ![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/output.PNG?raw=true)
+
+
+## Autoscaling
+
+![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/autoscaling.PNG?raw=true)
