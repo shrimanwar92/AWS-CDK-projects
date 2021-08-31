@@ -40,6 +40,4 @@ The project deploys a node-web-app to ECS fargate service.
 ![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/output.PNG?raw=true)
 
 
-## Autoscaling
-
-![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/autoscaling.PNG?raw=true)
+![alt text](https://raw.githubusercontent.com/shrimanwar92/AWS-CDK-projects/master/as-cf-project/screenshots/autoscaling.png)
