@@ -18,6 +18,8 @@ import {Role, ServicePrincipal} from "@aws-cdk/aws-iam";
 import {Duration, Stack} from "@aws-cdk/core";
 import {STACK_NAME, CONTAINER} from "./utils";
 import AppAutoScaling from "./autoscaling";
+import ElasticSearch from "./elastic-search";
+import {Domain} from "@aws-cdk/aws-elasticsearch";
 
 export interface ContainerProps {
     vpc: IVpc,
@@ -33,6 +35,7 @@ export default class Container {
     taskRole: Role;
     container: ContainerDefinition;
     fargateService: FargateService;
+    elasticSearch: Domain;
 
     private cluster: ICluster;
 
@@ -41,20 +44,7 @@ export default class Container {
         this.props = props;
     }
 
-    createFromRepository() {
-        // create task role
-        // create task definition
-        // create container
-        // create fargateService
-        // setup application autoscaling
-        return this.createTaskRole()
-            .createTaskDefinition()
-            .addContainer()
-            .startFargateService()
-            .setupAutoScaling();
-    }
-
-    private createTaskRole(): Container {
+    createTaskRole() {
         this.taskRole =  new Role(this.stack, `task-role`, {
             roleName: `${STACK_NAME}-task-role`,
             assumedBy: new ServicePrincipal("ecs-tasks.amazonaws.com"),
@@ -64,7 +54,7 @@ export default class Container {
         return this;
     }
 
-    private createTaskDefinition() {
+    createTaskDefinition() {
         this.taskDefinition = new FargateTaskDefinition(this.stack, `task-def`, {
             family: `${STACK_NAME}-task-def`,
             taskRole: this.taskRole,
@@ -74,34 +64,37 @@ export default class Container {
         return this;
     }
 
-    private addContainer() {
+    addContainerApplication() {
         this.container = this.taskDefinition.addContainer(`container`, {
             image: ContainerImage.fromEcrRepository(this.props.repository),
             containerName: CONTAINER.NAME,
-            logging: LogDrivers.awsLogs({ streamPrefix: `${STACK_NAME}-log` }),
+            logging: LogDrivers.awsLogs({ streamPrefix: `${STACK_NAME}-container-log` }),
             entryPoint: ["node", "server.js"],
             workingDirectory: "/app",
             secrets: {
                 //ConnectionStrings__DefaultConnection: Secret.fromSsmParameter(props.parameter)
             },
             environment: {
-                TEST: "my name is ..."
+                TEST: "my name is ..." + this.elasticSearch.domainEndpoint,
+                ES_DOMAIN_ENDPOINT: this.elasticSearch.domainEndpoint
             }
         });
         this.container.addPortMappings({containerPort: CONTAINER.PORT, hostPort: CONTAINER.PORT});
         return this;
     }
 
-    private startFargateService() {
+    startFargateService() {
         this.fargateService = new FargateService(this.stack, `fargate-service`, {
             serviceName: `${STACK_NAME}-fargate-service`,
-            cluster: this.createCluster(),
+            cluster: this.cluster,
             taskDefinition: this.taskDefinition,
             desiredCount: 1,
             vpcSubnets: {
                 subnetType: SubnetType.PRIVATE
             }
         });
+
+        this.fargateService.node.addDependency(this.cluster);
 
         // allow traffic from load balancer to container
         this.fargateService.connections.allowFrom(this.props.loadBalancerSecurityGroup, Port.tcp(CONTAINER.PORT), "allow traffic from Lb security group to container port");
@@ -120,9 +113,9 @@ export default class Container {
         return this;
     }
 
-    private createCluster(): ICluster {
+    createCluster(): Container {
         this.cluster = new Cluster(this.stack, `cluster`, {vpc: this.props.vpc, clusterName: `${STACK_NAME}-cluster` });
-        return this.cluster;
+        return this;
     }
 
     private addFargateServiceToLoadBalancerTargetGroup() {
@@ -171,10 +164,21 @@ export default class Container {
         });
     }
 
-    private setupAutoScaling(): AppAutoScaling {
-        return new AppAutoScaling(this.stack, {
+    setupAutoScaling() {
+        new AppAutoScaling(this.stack, {
             cluster: this.cluster,
             service: this.fargateService
         }).setupAutoScaling();
+
+        return this;
+    }
+
+    addElasticSearch() {
+        this.elasticSearch = new ElasticSearch(this.stack, {
+            cluster: this.cluster,
+            vpc: this.props.vpc
+        }).createElasticSearchDomain();
+        this.elasticSearch.grantReadWrite(this.taskDefinition.taskRole);
+        return this;
     }
 }

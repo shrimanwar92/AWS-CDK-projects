@@ -4,7 +4,7 @@ import {
     IApplicationLoadBalancer,
     ListenerAction
 } from "@aws-cdk/aws-elasticloadbalancingv2";
-import {Stack} from "@aws-cdk/core";
+import {CfnOutput, Stack} from "@aws-cdk/core";
 import {STACK_NAME} from "./utils";
 import {CfnVPCGatewayAttachment, ISecurityGroup, IVpc, Peer, Port, SecurityGroup, SubnetType} from "@aws-cdk/aws-ec2";
 
@@ -47,10 +47,14 @@ export default class ElasticLoadBalancer {
         this.loadBalancer.node.addDependency(this.props.vpc);
         this.loadBalancer.node.addDependency(this.loadBalancerSecurityGroup);
 
-        // sometimes gateway attachment is not created so when CF creates load balancer, it does not find the gateway
+        // sometimes gateway attachment takes some time to be created. So when CF creates load balancer, if it do not find the gateway
         // so it throws error "VPC vpc-01bc156233b79a0b6 has no internet gateway (Service: AmazonElasticLoadBalancingV2; Status Code: 400; Error Code: InvalidSubnet;"
         // https://github.com/awslabs/aws-cloudformation-templates/commit/6e3af420c3a872adf3b89db3a5a36ac994d676ff
         this.loadBalancer.node.addDependency(this.props.gatewayAttachment);
+        new CfnOutput(this.stack, 'LoadBalancer DNS', {
+            value: this.loadBalancer.loadBalancerDnsName,
+            description: 'load balancer DNS'
+        });
 
         return this;
     }

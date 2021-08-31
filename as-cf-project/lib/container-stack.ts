@@ -4,16 +4,23 @@ import Container, {ContainerProps} from "./container";
 type ContainerStackProps = ContainerProps & StackProps;
 
 export class ContainerStack extends Stack {
-    container: Container;
 
     constructor(scope: Construct, id: string, props: ContainerStackProps) {
         super(scope, id, props);
 
-        this.container = new Container(this, {
+        const containerService = new Container(this, {
             vpc: props.vpc,
             repository: props.repository,
             loadBalancerSecurityGroup: props.loadBalancerSecurityGroup,
             listener: props.listener
-        }).createFromRepository();
+        });
+
+        containerService.createCluster(); // create cluster
+        containerService.createTaskRole(); // create task role
+        containerService.createTaskDefinition(); // create task definition
+        containerService.addElasticSearch(); // add elastic search
+        containerService.addContainerApplication(); // add container application
+        containerService.startFargateService(); // start fargate tasks
+        containerService.setupAutoScaling(); // setup auto-scaling (currently scheduled)
     }
 }

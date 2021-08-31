@@ -1,7 +1,7 @@
 import {Construct, StackProps, Stack, CfnParameter, CfnOutput, Fn} from "@aws-cdk/core";
 import VPC from "./vpc";
 import {Vpc} from "@aws-cdk/aws-ec2";
-import {AVAILABILITY_ZONES, REPO_NAME} from "./utils";
+import {AVAILABILITY_ZONES, REPO_NAME, STACK_NAME, VPC_CIDR_BLOCK} from "./utils";
 import {IRepository} from "@aws-cdk/aws-ecr";
 import ElasticLoadBalancer from "./elbv2";
 import ECRRepository from "./repository";
@@ -32,8 +32,6 @@ export class DeploymentStack extends Stack {
             .addListener();
 
         this.repository = new ECRRepository(this).fetch(repoName);
-
-        this.print();
     }
 
     private createVpc() {
@@ -44,21 +42,15 @@ export class DeploymentStack extends Stack {
             .createNatGateway()
             .createRouteTable();
 
-        const importedVpc = Vpc.fromVpcAttributes(this, "vpcxyz", {
+        const importedVpc = Vpc.fromVpcAttributes(this, `${STACK_NAME}-import-vpc`, {
             vpcId: vpcAttrs.cfnVpc.ref,
             availabilityZones: AVAILABILITY_ZONES,
             privateSubnetIds: vpcAttrs.subnets.private.map(subnet => subnet.ref),
-            publicSubnetIds: vpcAttrs.subnets.public.map(subnet => subnet.ref)
+            publicSubnetIds: vpcAttrs.subnets.public.map(subnet => subnet.ref),
+            vpcCidrBlock: VPC_CIDR_BLOCK // required for elastic search
         });
         vpcAttrs.vpc = importedVpc;
 
         return vpcAttrs;
-    }
-
-    print() {
-        new CfnOutput(this, 'LoadBalancerDNS', {
-            value: this.loadBalancer.loadBalancer.loadBalancerDnsName,
-            description: 'load balancer DNS'
-        });
     }
 }

@@ -10,3 +10,4 @@ export const AUTOSCALING = {
     DOWN_SCALING_TIME: {hour: "01", min: "0"} // the time is in UTC
 };
 export const APPLICATION_DOCKER_IMAGE_PATH = "./../../source/node-app";
+export const VPC_CIDR_BLOCK = "10.0.0.0/16";
