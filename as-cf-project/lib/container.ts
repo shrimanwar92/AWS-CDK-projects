@@ -8,7 +8,7 @@ import {
 } from "@aws-cdk/aws-ecs";
 import {
     CfnListenerRule,
-    ApplicationTargetGroup
+    ApplicationTargetGroup, ListenerAction
 } from '@aws-cdk/aws-elasticloadbalancingv2';
 import {Role} from "@aws-cdk/aws-iam";
 import {Duration, Stack} from "@aws-cdk/core";
@@ -64,7 +64,7 @@ export default class Container {
         const fargateService = this.startFargateService(taskDefinition);
         this.allowPermissions(fargateService);
         // add fargate service to listener target group
-        this.addFargateServiceToLoadBalancerTargetGroup(fargateService);
+        this.addTargetGroupToListener(fargateService);
     }
 
     private startFargateService(taskDef: FargateTaskDefinition): FargateService {
@@ -95,7 +95,7 @@ export default class Container {
         //this.props.databaseSecurityGroup.connections.allowFrom(fargateSecurityGroup, Port.tcp(DATABASE_PORT), "allow traffic from container to database");
     }
 
-    private addFargateServiceToLoadBalancerTargetGroup(service: FargateService) {
+    private addTargetGroupToListener(service: FargateService) {
         /*
         * A target group tells a load balancer where to direct traffic to : EC2 instances, fixed IP addresses;
         * or AWS Lambda functions, amongst others.
@@ -106,8 +106,8 @@ export default class Container {
         // this health check should be configured properly. If not, target group wont be able to ping the app hoisted by container
         // the health check endpoint should point to the api-endpoint in the app.
         // If health check is not configured, the target group wont work and all the target groups will be unhealthy.
-        const targetGroup = new ApplicationTargetGroup(this.stack, "target-group", {
-            targetGroupName: `${STACK_NAME}-target-group`,
+        const appTargetGroup = new ApplicationTargetGroup(this.stack, "app-target-group", {
+            targetGroupName: `${STACK_NAME}-app-tg`,
             port: 80,
             targets: [service.loadBalancerTarget({
                 containerName: CONTAINER.NAME,
@@ -120,12 +120,25 @@ export default class Container {
             vpc: this.props.vpc
         });
 
+        const appListener = this.props.loadBalancer.addListener('AppListener', {
+            port: 80,
+            open: true,
+        });
+        appListener.addAction("listener-action", {
+            action: ListenerAction.fixedResponse(200, {
+                contentType: "text/plain",
+                messageBody: "xxx 12345 xxx"
+            })
+        });
+
+        appListener.node.addDependency(this.props.loadBalancer);
+
         // listener rule
         new CfnListenerRule(this.stack, "listener-rule", {
             actions: [
                 {
                     type: "forward",
-                    targetGroupArn: targetGroup.targetGroupArn
+                    targetGroupArn: appTargetGroup.targetGroupArn
                 }
             ],
             conditions: [
@@ -136,19 +149,10 @@ export default class Container {
                     }
                 }
             ],
-            listenerArn: this.props.listener.listenerArn,
+            listenerArn: appListener.listenerArn,
             priority: 1
         });
     }
-
-    /*setupAutoScaling() {
-        new AppAutoScaling(this.stack, {
-            cluster: this.props.cluster,
-            service: this.fargateService
-        }).setupAutoScaling();
-
-        return this;
-    }*/
 
     /*addElasticSearch() {
         this.elasticSearch = new ElasticSearch(this.stack, {

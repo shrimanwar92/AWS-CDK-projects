@@ -12,7 +12,6 @@ export interface ContainerStackProps {
     vpc: IVpc,
     repository: IRepository,
     loadBalancerSecurityGroup: ISecurityGroup,
-    listener: IApplicationListener,
     loadBalancer: IApplicationLoadBalancer,
 }
 
@@ -26,25 +25,22 @@ export class ContainerStack extends Stack {
         const taskRole = this.createTaskRole(props.repository);
         const cluster = this.createCluster(props.vpc);
 
-        const containerService = new Container(this, {
+        new Container(this, {
             vpc: props.vpc,
             repository: props.repository,
             taskRole,
             cluster,
             loadBalancerSecurityGroup: props.loadBalancerSecurityGroup,
-            listener: props.listener,
             loadBalancer: props.loadBalancer
-        });
+        }).addAppContainer();
 
-        const jenkinsService = new JenkinsContainer(this, {
+        new JenkinsContainer(this, {
             vpc: props.vpc,
             taskRole,
             cluster,
             loadBalancer: props.loadBalancer,
             loadBalancerSecurityGroup: props.loadBalancerSecurityGroup,
-        });
-        containerService.addAppContainer(); // add container application
-        jenkinsService.addContainer();
+        }).addContainer();
     }
 
     private createTaskRole(repo: IRepository) {

@@ -1,7 +1,7 @@
-import {Construct, StackProps, Stack, CfnParameter, CfnOutput, Fn} from "@aws-cdk/core";
-import VPC from "./vpc";
-import {Vpc} from "@aws-cdk/aws-ec2";
-import {AVAILABILITY_ZONES, REPO_NAME, STACK_NAME} from "./utils";
+import {Construct, StackProps, Stack, CfnParameter} from "@aws-cdk/core";
+import VPC, {VPCProps} from "./vpc";
+import {IVpc} from "@aws-cdk/aws-ec2";
+import {AVAILABILITY_ZONES, STACK_NAME} from "./utils";
 import {IRepository} from "@aws-cdk/aws-ecr";
 import ElasticLoadBalancer from "./elbv2";
 import ECRRepository from "./repository";
@@ -9,7 +9,7 @@ import ECRRepository from "./repository";
 // cdk deploy DeploymentStack --parameters repositoryName=1xxx
 
 export class DeploymentStack extends Stack {
-    vpc: any;
+    vpcAttrs: VPCProps;
     loadBalancer: ElasticLoadBalancer;
     repository: IRepository;
 
@@ -23,34 +23,11 @@ export class DeploymentStack extends Stack {
         }).valueAsString;
 
         // The code that defines your stack goes here
-        this.vpc = this.createVpc();
+        this.vpcAttrs = new VPC(this).create();
         this.loadBalancer = new ElasticLoadBalancer(this, {
-            vpc: this.vpc.vpc,
-            gatewayAttachment: this.vpc.gatewayAttachment
-        })
-            .create()
-            .addListener();
-
+            vpc: this.vpcAttrs.vpc,
+            gatewayAttachment: this.vpcAttrs.gatewayAttachment
+        }).create();
         this.repository = new ECRRepository(this).fetch(repoName);
-    }
-
-    private createVpc() {
-        const vpcAttrs = new VPC(this)
-            .create()
-            .createSubnets()
-            .createInternetGateway()
-            .createNatGateway()
-            .createRouteTable();
-
-        const importedVpc = Vpc.fromVpcAttributes(this, `${STACK_NAME}-import-vpc`, {
-            vpcId: vpcAttrs.cfnVpc.ref,
-            availabilityZones: AVAILABILITY_ZONES,
-            privateSubnetIds: vpcAttrs.subnets.private.map(subnet => subnet.ref),
-            publicSubnetIds: vpcAttrs.subnets.public.map(subnet => subnet.ref),
-            vpcCidrBlock: "10.0.0.0/16"
-        });
-        vpcAttrs.vpc = importedVpc;
-
-        return vpcAttrs;
     }
 }

@@ -14,6 +14,7 @@ import {
     ListenerAction, CfnListenerRule
 } from "@aws-cdk/aws-elasticloadbalancingv2";
 import {Role} from "@aws-cdk/aws-iam";
+import {ContainerStackProps} from "./container-stack";
 
 interface JenkinsProps {
     cluster: ICluster,
@@ -22,11 +23,6 @@ interface JenkinsProps {
     loadBalancer: IApplicationLoadBalancer,
     loadBalancerSecurityGroup: ISecurityGroup
 }
-
-/*export interface Jenkins {
-    efs: FileSystem,
-    jenkinsContainer: ContainerDefinition
-}*/
 
 export default class JenkinsContainer {
     readonly stack: Stack;
@@ -103,7 +99,7 @@ export default class JenkinsContainer {
 
         const fargateService = this.startFargateService(taskDef);
         this.allowPermissions(fargateService, efs);
-        this.createTargetGroup(fargateService);
+        this.addTargetGroupToListener(fargateService);
     }
 
     private startFargateService(taskDef: FargateTaskDefinition): FargateService {
@@ -138,7 +134,7 @@ export default class JenkinsContainer {
         fargateSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(443), "allow container to pull ecr image");
     }
 
-    createTargetGroup(fargateService: FargateService) {
+    addTargetGroupToListener(fargateService: FargateService) {
         const jenkinsTargetGroup = new ApplicationTargetGroup(this.stack, "JenkinsTargetGroup", {
             targetGroupName: `jenkins-target-group`,
             port: JENKINS_CONTAINER.PORT,
@@ -156,7 +152,7 @@ export default class JenkinsContainer {
             vpc: this.props.vpc
         });
 
-        const httpListener = this.props.loadBalancer.addListener("JenkinsHTTPListener", {
+        const httpListener = this.props.loadBalancer.addListener("JenkinsListener", {
             protocol: ApplicationProtocol.HTTP,
             open: true,
             port: JENKINS_CONTAINER.PORT

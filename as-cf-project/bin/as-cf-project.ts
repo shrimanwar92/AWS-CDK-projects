@@ -22,9 +22,8 @@ const deployStack = new DeploymentStack(app, 'DeploymentStack', {
 });
 
 new ContainerStack(app, 'ContainerStack', {
-    vpc: deployStack.vpc.vpc,
+    vpc: deployStack.vpcAttrs.vpc,
     repository: deployStack.repository,
     loadBalancerSecurityGroup: deployStack.loadBalancer.loadBalancerSecurityGroup,
-    listener: deployStack.loadBalancer.listener,
     loadBalancer: deployStack.loadBalancer.loadBalancer
 })

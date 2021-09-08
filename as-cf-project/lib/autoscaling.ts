@@ -38,3 +38,12 @@ export default class AppAutoScaling {
         return this;
     }
 }
+
+/*setupAutoScaling() {
+    new AppAutoScaling(this.stack, {
+        cluster: this.props.cluster,
+        service: this.fargateService
+    }).setupAutoScaling();
+
+    return this;
+}*/

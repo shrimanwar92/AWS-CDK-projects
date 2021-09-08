@@ -1,30 +1,19 @@
 import {
-    ApplicationListener,
     ApplicationLoadBalancer, IApplicationListener,
-    IApplicationLoadBalancer,
-    ListenerAction
+    IApplicationLoadBalancer
 } from "@aws-cdk/aws-elasticloadbalancingv2";
 import {CfnOutput, Stack} from "@aws-cdk/core";
 import {STACK_NAME} from "./utils";
-import {CfnVPCGatewayAttachment, ISecurityGroup, IVpc, Peer, Port, SecurityGroup, SubnetType} from "@aws-cdk/aws-ec2";
+import {ISecurityGroup, Peer, Port, SecurityGroup, SubnetType} from "@aws-cdk/aws-ec2";
+import {VPCProps} from "./vpc";
 
-interface LoadBalancerProps {
-    vpc: IVpc,
-    gatewayAttachment: CfnVPCGatewayAttachment
-}
-
-export interface AppLoadBalancer {
-    loadBalancerSecurityGroup: ISecurityGroup,
-    listener: IApplicationListener,
-    loadBalancer: IApplicationLoadBalancer
-}
+type LoadBalancerProps = VPCProps;
 
 export default class ElasticLoadBalancer {
     readonly stack: Stack;
     readonly props: LoadBalancerProps;
     loadBalancer: IApplicationLoadBalancer;
     loadBalancerSecurityGroup: ISecurityGroup;
-    listener: ApplicationListener;
 
     constructor(stack: Stack, props: LoadBalancerProps) {
         this.stack = stack;
@@ -65,21 +54,4 @@ export default class ElasticLoadBalancer {
 
         return this;
     }
-
-    addListener(): ElasticLoadBalancer {
-        this.listener = this.loadBalancer.addListener(`${STACK_NAME}-listener`, {
-            port: 80,
-            open: true,
-        });
-        this.listener.addAction("listener-action", {
-            action: ListenerAction.fixedResponse(200, {
-                contentType: "text/plain",
-                messageBody: "xxx 12345 xxx"
-            })
-        });
-
-        this.listener.node.addDependency(this.loadBalancer);
-        return this;
-    }
-
 }
