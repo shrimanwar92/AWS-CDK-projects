@@ -40,10 +40,10 @@ The project deploys a node-web-app to ECS fargate service.
 ![alt text](https://github.com/shrimanwar92/AWS-CDK-projects/blob/master/as-cf-project/screenshots/output.PNG?raw=true)
 
 
-![alt text](https://raw.githubusercontent.com/shrimanwar92/AWS-CDK-projects/master/as-cf-project/screenshots/autoscaling.png)
+![alt text](https://raw.githubusercontent.com/shrimanwar92/AWS-CDK-projects/master/as-cf-project/screenshots/autoscaling.png?raw=true)
 
-![alt text](https://raw.githubusercontent.com/shrimanwar92/AWS-CDK-projects/master/as-cf-project/screenshots/services.png)
+![alt text](https://raw.githubusercontent.com/shrimanwar92/AWS-CDK-projects/master/as-cf-project/screenshots/services.PNG?raw=true)
 
-![alt text](https://raw.githubusercontent.com/shrimanwar92/AWS-CDK-projects/master/as-cf-project/screenshots/jenkins.png)
+![alt text](https://raw.githubusercontent.com/shrimanwar92/AWS-CDK-projects/master/as-cf-project/screenshots/jenkins.PNG?raw=true)
 
-![alt text](https://raw.githubusercontent.com/shrimanwar92/AWS-CDK-projects/master/as-cf-project/screenshots/tgs.png)
+![alt text](https://raw.githubusercontent.com/shrimanwar92/AWS-CDK-projects/master/as-cf-project/screenshots/tgs.PNG?raw=true)
