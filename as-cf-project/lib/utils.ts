@@ -1,7 +1,7 @@
 export const STACK_NAME = "torX";
 export const AVAILABILITY_ZONES = ["us-east-1a", "us-east-1b"];
 export const CONTAINER = {
-    PORT: 80,
+    PORT: 80, // make sure the application port matches with this port
     NAME: "container"
 };
 export const REPO_NAME = '1xxx';
@@ -10,4 +10,10 @@ export const AUTOSCALING = {
     DOWN_SCALING_TIME: {hour: "01", min: "0"} // the time is in UTC
 };
 export const APPLICATION_DOCKER_IMAGE_PATH = "./../../source/node-app";
-export const VPC_CIDR_BLOCK = "10.0.0.0/16";
+export const ELASTIC_SEARCH = {
+    IP: "106.215.63.120"
+};
+export const JENKINS_CONTAINER = {
+    PORT: 8080,
+    NAME: "jenkins-container"
+};

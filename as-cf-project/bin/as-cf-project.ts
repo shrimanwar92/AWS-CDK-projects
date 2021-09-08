@@ -25,5 +25,6 @@ new ContainerStack(app, 'ContainerStack', {
     vpc: deployStack.vpc.vpc,
     repository: deployStack.repository,
     loadBalancerSecurityGroup: deployStack.loadBalancer.loadBalancerSecurityGroup,
-    listener: deployStack.loadBalancer.listener
+    listener: deployStack.loadBalancer.listener,
+    loadBalancer: deployStack.loadBalancer.loadBalancer
 })

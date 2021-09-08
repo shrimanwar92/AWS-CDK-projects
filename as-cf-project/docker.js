@@ -21,13 +21,13 @@ async function main() {
 
 
 function buildAndPushImage(repoUri) {
-    const tag = "node-web-app";
+    const tag = `node-web-app-${Date.now()}`;
 
     // change directory where dockerfile is present
     // execSync is used because each step is dependant on its previous step
     process.chdir(APPLICATION_DOCKER_IMAGE_PATH);
     // build
-    execSync(`docker build -t ${tag} .`, {stdio: 'inherit'});
+    execSync(`docker build -t ${tag} . --no-cache`, {stdio: 'inherit'});
     //tag
     execSync(`docker tag ${tag} ${repoUri}`, {stdio: 'inherit'});
     // push

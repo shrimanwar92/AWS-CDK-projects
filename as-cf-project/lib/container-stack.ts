@@ -1,26 +1,62 @@
 import {Construct, Stack, StackProps} from "@aws-cdk/core";
-import Container, {ContainerProps} from "./container";
+import Container from "./container";
+import {Role, ServicePrincipal} from "@aws-cdk/aws-iam";
+import {STACK_NAME} from "./utils";
+import {IRepository} from "@aws-cdk/aws-ecr";
+import {Cluster, ICluster} from "@aws-cdk/aws-ecs";
+import {ISecurityGroup, IVpc} from "@aws-cdk/aws-ec2";
+import JenkinsContainer from './jenkins';
+import {IApplicationListener, IApplicationLoadBalancer} from "@aws-cdk/aws-elasticloadbalancingv2";
 
-type ContainerStackProps = ContainerProps & StackProps;
+export interface ContainerStackProps {
+    vpc: IVpc,
+    repository: IRepository,
+    loadBalancerSecurityGroup: ISecurityGroup,
+    listener: IApplicationListener,
+    loadBalancer: IApplicationLoadBalancer,
+}
+
+type Props = ContainerStackProps & StackProps;
 
 export class ContainerStack extends Stack {
 
-    constructor(scope: Construct, id: string, props: ContainerStackProps) {
+    constructor(scope: Construct, id: string, props: Props) {
         super(scope, id, props);
+
+        const taskRole = this.createTaskRole(props.repository);
+        const cluster = this.createCluster(props.vpc);
 
         const containerService = new Container(this, {
             vpc: props.vpc,
             repository: props.repository,
+            taskRole,
+            cluster,
             loadBalancerSecurityGroup: props.loadBalancerSecurityGroup,
-            listener: props.listener
+            listener: props.listener,
+            loadBalancer: props.loadBalancer
         });
 
-        containerService.createCluster(); // create cluster
-        containerService.createTaskRole(); // create task role
-        containerService.createTaskDefinition(); // create task definition
-        containerService.addElasticSearch(); // add elastic search
-        containerService.addContainerApplication(); // add container application
-        containerService.startFargateService(); // start fargate tasks
-        containerService.setupAutoScaling(); // setup auto-scaling (currently scheduled)
+        const jenkinsService = new JenkinsContainer(this, {
+            vpc: props.vpc,
+            taskRole,
+            cluster,
+            loadBalancer: props.loadBalancer,
+            loadBalancerSecurityGroup: props.loadBalancerSecurityGroup,
+        });
+        containerService.addAppContainer(); // add container application
+        jenkinsService.addContainer();
+    }
+
+    private createTaskRole(repo: IRepository) {
+        const taskRole =  new Role(this, `task-role`, {
+            roleName: `${STACK_NAME}-task-role`,
+            assumedBy: new ServicePrincipal("ecs-tasks.amazonaws.com"),
+        });
+        repo.grantPull(taskRole);
+        return taskRole;
+    }
+
+    private createCluster(vpc: IVpc): ICluster {
+        return new Cluster(this, `cluster`, {vpc, clusterName: `${STACK_NAME}-cluster` });
     }
 }

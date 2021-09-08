@@ -1,6 +1,6 @@
 import {
     ApplicationListener,
-    ApplicationLoadBalancer,
+    ApplicationLoadBalancer, IApplicationListener,
     IApplicationLoadBalancer,
     ListenerAction
 } from "@aws-cdk/aws-elasticloadbalancingv2";
@@ -11,6 +11,12 @@ import {CfnVPCGatewayAttachment, ISecurityGroup, IVpc, Peer, Port, SecurityGroup
 interface LoadBalancerProps {
     vpc: IVpc,
     gatewayAttachment: CfnVPCGatewayAttachment
+}
+
+export interface AppLoadBalancer {
+    loadBalancerSecurityGroup: ISecurityGroup,
+    listener: IApplicationListener,
+    loadBalancer: IApplicationLoadBalancer
 }
 
 export default class ElasticLoadBalancer {
@@ -26,13 +32,14 @@ export default class ElasticLoadBalancer {
     }
 
     create(): ElasticLoadBalancer {
-        this.loadBalancerSecurityGroup = new SecurityGroup(this.stack, `${STACK_NAME}-lb-sg`, {
-            securityGroupName: `${STACK_NAME}-sg`,
+        this.loadBalancerSecurityGroup = new SecurityGroup(this.stack, `${STACK_NAME}-alb-sg`, {
+            securityGroupName: `${STACK_NAME}-alb-sg`,
             description: "security group for load balancer",
             vpc: this.props.vpc,
             allowAllOutbound: true
         });
         this.loadBalancerSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(80), "allow traffic on port 80");
+        this.loadBalancerSecurityGroup.addIngressRule(Peer.ipv4("106.215.63.120/32"), Port.tcp(8080), "allow traffic on port 8080 for jenkins");
 
         this.loadBalancer = new ApplicationLoadBalancer(this.stack, `${STACK_NAME}-lb`, {
             loadBalancerName: `${STACK_NAME}-lb`,

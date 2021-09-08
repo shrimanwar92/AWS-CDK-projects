@@ -6,7 +6,7 @@ import {
     CfnEIP,
     CfnRouteTable, CfnRoute, CfnSubnet, CfnSubnetRouteTableAssociation, IVpc
 } from "@aws-cdk/aws-ec2";
-import {STACK_NAME, AVAILABILITY_ZONES, VPC_CIDR_BLOCK} from "./utils";
+import {STACK_NAME, AVAILABILITY_ZONES} from "./utils";
 
 type Subnets = {
     public: CfnSubnet[],
@@ -28,7 +28,7 @@ export default class VPC {
 
     create(): VPC {
         this.cfnVpc = new CfnVPC(this.stack, `${STACK_NAME}-vpc`, {
-            cidrBlock: VPC_CIDR_BLOCK,
+            cidrBlock: "10.0.0.0/16",
             enableDnsSupport: true,
             enableDnsHostnames: true,
             tags: [{key: "VpcName", value: `${STACK_NAME}-vpc`}]

@@ -1,71 +1,52 @@
-import {IRepository} from "@aws-cdk/aws-ecr";
-import {ISecurityGroup, IVpc, Peer, Port, SecurityGroup, SubnetType} from "@aws-cdk/aws-ec2";
+import {Peer, Port, SecurityGroup, SubnetType} from "@aws-cdk/aws-ec2";
 import {
-    Cluster,
     ContainerImage,
     FargateService,
     FargateTaskDefinition,
     LogDrivers,
-    ContainerDefinition,
     ICluster,
 } from "@aws-cdk/aws-ecs";
 import {
-    IApplicationListener,
     CfnListenerRule,
     ApplicationTargetGroup
 } from '@aws-cdk/aws-elasticloadbalancingv2';
-import {Role, ServicePrincipal} from "@aws-cdk/aws-iam";
+import {Role} from "@aws-cdk/aws-iam";
 import {Duration, Stack} from "@aws-cdk/core";
 import {STACK_NAME, CONTAINER} from "./utils";
 import AppAutoScaling from "./autoscaling";
 import ElasticSearch from "./elastic-search";
 import {Domain} from "@aws-cdk/aws-elasticsearch";
+import {ContainerStackProps} from "./container-stack";
 
-export interface ContainerProps {
-    vpc: IVpc,
-    repository: IRepository,
-    loadBalancerSecurityGroup: ISecurityGroup,
-    listener: IApplicationListener
+export interface AppContainerProps extends ContainerStackProps {
+    taskRole: Role,
+    cluster: ICluster
 }
 
 export default class Container {
     readonly stack: Stack;
-    readonly props: ContainerProps;
-    taskDefinition: FargateTaskDefinition;
-    taskRole: Role;
-    container: ContainerDefinition;
-    fargateService: FargateService;
+    readonly props: AppContainerProps;
     elasticSearch: Domain;
 
-    private cluster: ICluster;
-
-    constructor(stack: Stack, props: ContainerProps) {
+    constructor(stack: Stack, props: AppContainerProps) {
         this.stack = stack;
         this.props = props;
     }
 
-    createTaskRole() {
-        this.taskRole =  new Role(this.stack, `task-role`, {
-            roleName: `${STACK_NAME}-task-role`,
-            assumedBy: new ServicePrincipal("ecs-tasks.amazonaws.com"),
-        });
-        this.props.repository.grantPull(this.taskRole);
-
-        return this;
-    }
-
-    createTaskDefinition() {
-        this.taskDefinition = new FargateTaskDefinition(this.stack, `task-def`, {
-            family: `${STACK_NAME}-task-def`,
-            taskRole: this.taskRole,
-            executionRole: this.taskRole
+    private createTaskDefinition(): FargateTaskDefinition {
+        const taskDefinition = new FargateTaskDefinition(this.stack, 'app-task-def', {
+            family: `${STACK_NAME}-app-task-def`,
+            taskRole: this.props.taskRole,
+            executionRole: this.props.taskRole
         });
 
-        return this;
+        return taskDefinition;
     }
 
-    addContainerApplication() {
-        this.container = this.taskDefinition.addContainer(`container`, {
+    addAppContainer() {
+        const taskDefinition = this.createTaskDefinition();
+
+        taskDefinition.addContainer(`container`, {
             image: ContainerImage.fromEcrRepository(this.props.repository),
             containerName: CONTAINER.NAME,
             logging: LogDrivers.awsLogs({ streamPrefix: `${STACK_NAME}-container-log` }),
@@ -75,50 +56,46 @@ export default class Container {
                 //ConnectionStrings__DefaultConnection: Secret.fromSsmParameter(props.parameter)
             },
             environment: {
-                TEST: "my name is ..." + this.elasticSearch.domainEndpoint,
-                ES_DOMAIN_ENDPOINT: this.elasticSearch.domainEndpoint
-            }
+                TEST: "my name is ... mkmmmkk", //+ this.elasticSearch.domainEndpoint,
+                //ES_DOMAIN_ENDPOINT: this.elasticSearch.domainEndpoint
+            },
+            portMappings: [{containerPort: CONTAINER.PORT, hostPort: CONTAINER.PORT}]
         });
-        this.container.addPortMappings({containerPort: CONTAINER.PORT, hostPort: CONTAINER.PORT});
-        return this;
+        const fargateService = this.startFargateService(taskDefinition);
+        this.allowPermissions(fargateService);
+        // add fargate service to listener target group
+        this.addFargateServiceToLoadBalancerTargetGroup(fargateService);
     }
 
-    startFargateService() {
-        this.fargateService = new FargateService(this.stack, `fargate-service`, {
+    private startFargateService(taskDef: FargateTaskDefinition): FargateService {
+        const fargateService = new FargateService(this.stack, `fargate-service`, {
             serviceName: `${STACK_NAME}-fargate-service`,
-            cluster: this.cluster,
-            taskDefinition: this.taskDefinition,
+            cluster: this.props.cluster,
+            taskDefinition: taskDef,
             desiredCount: 1,
             vpcSubnets: {
                 subnetType: SubnetType.PRIVATE
             }
         });
 
-        this.fargateService.node.addDependency(this.cluster);
+        fargateService.node.addDependency(this.props.cluster);
+        return fargateService;
+    }
 
+    private allowPermissions(service: FargateService) {
         // allow traffic from load balancer to container
-        this.fargateService.connections.allowFrom(this.props.loadBalancerSecurityGroup, Port.tcp(CONTAINER.PORT), "allow traffic from Lb security group to container port");
+        service.connections.allowFrom(this.props.loadBalancerSecurityGroup, Port.tcp(CONTAINER.PORT), "allow traffic from Lb security group to container port");
 
         // allow container to pull ECR image
-        const defaultFargateSecurityGroup = this.fargateService.connections.securityGroups[0];
+        const defaultFargateSecurityGroup = service.connections.securityGroups[0];
         const fargateSecurityGroup = SecurityGroup.fromSecurityGroupId(this.stack, 'import-fargate-sg', defaultFargateSecurityGroup.securityGroupId);
         fargateSecurityGroup.addIngressRule(Peer.anyIpv4(), Port.tcp(443), "allow container to pull ecr image");
 
         // allow traffic from container to database
         //this.props.databaseSecurityGroup.connections.allowFrom(fargateSecurityGroup, Port.tcp(DATABASE_PORT), "allow traffic from container to database");
-
-        // add fargate service to listener target group
-        this.addFargateServiceToLoadBalancerTargetGroup();
-
-        return this;
     }
 
-    createCluster(): Container {
-        this.cluster = new Cluster(this.stack, `cluster`, {vpc: this.props.vpc, clusterName: `${STACK_NAME}-cluster` });
-        return this;
-    }
-
-    private addFargateServiceToLoadBalancerTargetGroup() {
+    private addFargateServiceToLoadBalancerTargetGroup(service: FargateService) {
         /*
         * A target group tells a load balancer where to direct traffic to : EC2 instances, fixed IP addresses;
         * or AWS Lambda functions, amongst others.
@@ -132,12 +109,12 @@ export default class Container {
         const targetGroup = new ApplicationTargetGroup(this.stack, "target-group", {
             targetGroupName: `${STACK_NAME}-target-group`,
             port: 80,
-            targets: [this.fargateService.loadBalancerTarget({
+            targets: [service.loadBalancerTarget({
                 containerName: CONTAINER.NAME,
                 containerPort: CONTAINER.PORT
             })],
             healthCheck: {
-                path: "/",
+                path: "/hc",
                 interval: Duration.seconds(30)
             },
             vpc: this.props.vpc
@@ -164,21 +141,21 @@ export default class Container {
         });
     }
 
-    setupAutoScaling() {
+    /*setupAutoScaling() {
         new AppAutoScaling(this.stack, {
-            cluster: this.cluster,
+            cluster: this.props.cluster,
             service: this.fargateService
         }).setupAutoScaling();
 
         return this;
-    }
+    }*/
 
-    addElasticSearch() {
+    /*addElasticSearch() {
         this.elasticSearch = new ElasticSearch(this.stack, {
-            cluster: this.cluster,
+            cluster: this.props.cluster,
             vpc: this.props.vpc
         }).createElasticSearchDomain();
         this.elasticSearch.grantReadWrite(this.taskDefinition.taskRole);
         return this;
-    }
+    }*/
 }

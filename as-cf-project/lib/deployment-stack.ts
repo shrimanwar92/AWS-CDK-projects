@@ -1,7 +1,7 @@
 import {Construct, StackProps, Stack, CfnParameter, CfnOutput, Fn} from "@aws-cdk/core";
 import VPC from "./vpc";
 import {Vpc} from "@aws-cdk/aws-ec2";
-import {AVAILABILITY_ZONES, REPO_NAME, STACK_NAME, VPC_CIDR_BLOCK} from "./utils";
+import {AVAILABILITY_ZONES, REPO_NAME, STACK_NAME} from "./utils";
 import {IRepository} from "@aws-cdk/aws-ecr";
 import ElasticLoadBalancer from "./elbv2";
 import ECRRepository from "./repository";
@@ -47,7 +47,7 @@ export class DeploymentStack extends Stack {
             availabilityZones: AVAILABILITY_ZONES,
             privateSubnetIds: vpcAttrs.subnets.private.map(subnet => subnet.ref),
             publicSubnetIds: vpcAttrs.subnets.public.map(subnet => subnet.ref),
-            vpcCidrBlock: VPC_CIDR_BLOCK // required for elastic search
+            vpcCidrBlock: "10.0.0.0/16"
         });
         vpcAttrs.vpc = importedVpc;
 
