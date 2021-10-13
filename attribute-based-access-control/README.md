@@ -18,13 +18,13 @@ This is a AWS CDK project that creates
 # Images
  
 ## Alice's permission
-![Alt text](/screenshots/alice1.PNG)
-![Alt text](/screenshots/alice2.PNG) 
-![Alt text](/screenshots/alice3.PNG) 
-![Alt text](/screenshots/alice4.PNG)
+![Screenshot](screenshots/alice1.PNG)
+![Screenshot](screenshots/alice2.PNG) 
+![Screenshot](screenshots/alice3.PNG) 
+![Screenshot](screenshots/alice4.PNG)
 
 ## Bob's permission
-![Alt text](/screenshots/bob1.PNG)
-![Alt text](/screenshots/bob2.PNG) 
-![Alt text](/screenshots/bob3.PNG) 
-![Alt text](/screenshots/bob4.PNG)
+![Screenshot](screenshots/bob1.PNG)
+![Screenshot](screenshots/bob2.PNG) 
+![Screenshot](screenshots/bob3.PNG) 
+![Screenshot](screenshots/bob4.PNG)
