@@ -56,7 +56,7 @@ export default class Container {
                 //ConnectionStrings__DefaultConnection: Secret.fromSsmParameter(props.parameter)
             },
             environment: {
-                TEST: "my name is ... mkmmmkk", //+ this.elasticSearch.domainEndpoint,
+                TEST: "my name is ... avanish and nilay", //+ this.elasticSearch.domainEndpoint,
                 //ES_DOMAIN_ENDPOINT: this.elasticSearch.domainEndpoint
             },
             portMappings: [{containerPort: CONTAINER.PORT, hostPort: CONTAINER.PORT}]

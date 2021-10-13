@@ -1,4 +1,4 @@
-export const STACK_NAME = "torX";
+export const STACK_NAME = "torX".toLocaleLowerCase();
 export const AVAILABILITY_ZONES = ["us-east-1a", "us-east-1b"];
 export const CONTAINER = {
     PORT: 80, // make sure the application port matches with this port
