@@ -8,7 +8,7 @@ This is a AWS CDK project that creates
 
 ## Useful commands
 
- * `cdk deploy`   deploys Attribute based access control stack.
+ * `cdk deploy`   deploys stack.
  * `cdk synth`    compiles ts project to generate cloudformation
  
  
