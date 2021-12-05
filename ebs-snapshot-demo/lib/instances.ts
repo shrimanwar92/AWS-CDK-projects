@@ -9,13 +9,14 @@ import {
     IVpc,
     Peer,
     Port,
-    SecurityGroup,
+    SecurityGroup, UserData,
     Volume, CfnVolumeAttachment
 } from "@aws-cdk/aws-ec2";
-import {CfnOutput, RemovalPolicy, Size, Stack} from "@aws-cdk/core";
+import {CfnOutput, RemovalPolicy, Size, Stack, Tags} from "@aws-cdk/core";
 import {EC2_KEY_PAIR_NAME, MY_IP, STACK_NAME} from "./utils";
 import {ManagedPolicy, Role, ServicePrincipal} from "@aws-cdk/aws-iam";
 import CustomResource from "./custom-resource";
+import LifecycleManager from "./lifecycle-manager";
 
 interface Ec2InstanceProps{
     vpc: IVpc,
@@ -50,6 +51,20 @@ export default class Ec2Instance {
 
         return Array(this.props.noOfInstances).fill('instance', 0)
             .map((inst, index) => {
+                const userData = UserData.forLinux();
+                userData.addCommands(
+                    `yum install httpd -y`,
+                    `echo "<h1>Response from server ${inst}-${index+1}</h1>" > /var/www/html/index.html`,
+                    `chkconfig httpd on`,
+                    `service httpd start`
+                );
+
+                /* sudo su
+                   sudo mkfs -t ext4 /dev/xvdm
+                   sudo mkdir m-drive
+                   sudo mount /dev/xvdm m-drive/
+                   cd /home/ec2-user/m-drive/
+                   touch file.txt */
 
                 const instance = new Instance(this.stack, `${STACK_NAME}-ec2-${index}`, {
                     vpc: this.props.vpc,
@@ -59,7 +74,7 @@ export default class Ec2Instance {
                     instanceName: `${STACK_NAME}-ec2-${index}`,
                     instanceType: InstanceType.of(InstanceClass.T2, InstanceSize.MICRO),
                     machineImage: new AmazonLinuxImage(),
-                    role,
+                    role, userData,
                     securityGroup: ec2SG,
                     keyName: EC2_KEY_PAIR_NAME
                 });
@@ -68,32 +83,12 @@ export default class Ec2Instance {
 
                 if(index === 0) {
                     this.createVolume(instance);
-                    instance.addUserData(
-                        `#!/bin/bash`,
-                        `yum install httpd -y`,
-                        `echo "<h1>Response from server ${inst}-${index+1}</h1>" > /var/www/html/index.html`,
-                        `chkconfig httpd on`,
-                        `service httpd start`,
-                        `sudo su`,
-                        `sudo mkfs -t ext4 /dev/xvdm`,
-                        `sudo mkdir m-drive`,
-                        `sudo mount /dev/xvdm m-drive/`,
-                        `cd /home/ec2-user/m-drive/`,
-                        `touch file.txt`
-                    );
-                } else {
-                    instance.addUserData(
-                        `#!/bin/bash`,
-                        `yum install httpd -y`,
-                        `echo "<h1>Response from server ${inst}-${index+1}</h1>" > /var/www/html/index.html`,
-                        `chkconfig httpd on`,
-                        `service httpd start`
-                    );
                 }
 
                 new CfnOutput(this.stack, `Instance-${index} Public IP`, {
                     value: instance.instancePublicIp
                 });
+
                 return instance.instance;
             });
     }
@@ -108,6 +103,7 @@ export default class Ec2Instance {
         });
 
         volume.node.addDependency(instance);
+        Tags.of(volume).add("DLM", "true");
 
         new CfnVolumeAttachment(this.stack, `${STACK_NAME}-vol-att`, {
             instanceId: instance.instanceId,
@@ -115,7 +111,6 @@ export default class Ec2Instance {
             device: "/dev/sdm"
         });
 
-        const snapshot = new CustomResource(this.stack).createSnapshot(volume.volumeId);
-        snapshot.node.addDependency(volume);
+        new LifecycleManager(this.stack).setupDML();
     }
 }
