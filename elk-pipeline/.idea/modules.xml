@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/app-elb.iml" filepath="$PROJECT_DIR$/.idea/app-elb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/elk-pipeline.iml" filepath="$PROJECT_DIR$/.idea/elk-pipeline.iml" />
     </modules>
   </component>
 </project>
