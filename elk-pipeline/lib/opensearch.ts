@@ -1,17 +1,13 @@
 import {Domain, EngineVersion} from 'aws-cdk-lib/aws-opensearchservice';
-import {CfnOutput, RemovalPolicy, Stack} from "aws-cdk-lib";
+import {RemovalPolicy, Stack} from "aws-cdk-lib";
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {
     SecurityGroup,
     Peer,
     Port,
-    IVpc,
-    Instance,
-    InstanceType, InstanceClass, InstanceSize, AmazonLinuxImage
+    IVpc
 } from "aws-cdk-lib/aws-ec2";
 import {STACK_NAME} from "./utils";
-import {Role} from "aws-cdk-lib/aws-iam";
-import {inspect} from "util";
 
 interface OpenSearchProps {
     vpc: IVpc;
@@ -66,14 +62,10 @@ export default class OpenSearch {
             securityGroups: [osSecurityGroup],
         });
 
-        new CfnOutput(this.stack, 'OpenSearch-domain', {
-            value: domain.domainEndpoint
-        });
-
         return { domain, osSG: osSecurityGroup };
     }
 
-    createInstanceToAccessOpenSearch(osSG: SecurityGroup ) {
+    /*createInstanceToAccessOpenSearch(osSG: SecurityGroup ): Instance {
         const osInstance = new Instance(this.stack, `${STACK_NAME}-oss-ec2`, {
             vpc: this.props.vpc,
             vpcSubnets: {
@@ -86,11 +78,13 @@ export default class OpenSearch {
             role: new Role(this.stack, `${STACK_NAME}-oss-ec2-role`, {
                 assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com')
             }),
-            keyName: "my-key-pair"
+            keyName: KEY_PAIR_NAME
         });
 
         new CfnOutput(this.stack, 'OpenSearch-ec2-instance', {
             value: osInstance.instancePublicIp
         });
-    }
+
+        return osInstance;
+    }*/
 }
