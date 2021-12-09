@@ -5,13 +5,13 @@ import { BaseStack, OpenSearchLogStash, FileBeatStack } from '../lib/elk-pipelin
 
 const app = new cdk.App();
 
-const base = new BaseStack(app, 'BaseStack');
+const baseStack = new BaseStack(app, 'BaseStack');
 
-const { openSearchLogStashInstance } = new OpenSearchLogStash(app, 'OpenSearchLogStash', {
-    vpc: base.vpc
+const openSearchLogStashInstanceStack = new OpenSearchLogStash(app, 'OpenSearchLogStash', {
+    vpc: baseStack.vpc
 });
 
-new FileBeatStack(app, 'FileBeatStack', {
+const filebeatStack = new FileBeatStack(app, 'FileBeatStack', {
     /* If you don't specify 'env', this stack will be environment-agnostic.
     * Account/Region-dependent features and context lookups will not work,
     * but a single synthesized template can be deployed anywhere. */
@@ -25,6 +25,9 @@ new FileBeatStack(app, 'FileBeatStack', {
     // env: { account: '123456789012', region: 'us-east-1' },
 
     /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
-    vpc: base.vpc,
-    logstashIP: openSearchLogStashInstance.instancePublicIp
+    vpc: baseStack.vpc,
+    logstashIP: openSearchLogStashInstanceStack.openSearchLogStashInstance.instancePublicIp
 });
+
+openSearchLogStashInstanceStack.addDependency(baseStack); // opensearch-logstash stack depends on base stack for vpc
+filebeatStack.addDependency(openSearchLogStashInstanceStack); // filebeat stack depends on opensearch-logstash stack for its public ip
