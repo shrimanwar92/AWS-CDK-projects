@@ -13,7 +13,6 @@ export default class VPC {
         return new Vpc(this.stack, `${STACK_NAME}-vpc`, {
             cidr: "10.0.0.0/16",
             maxAzs: 1,
-            natGateways: 1,
             subnetConfiguration: [{
                 cidrMask: 24,
                 subnetType: SubnetType.PUBLIC,

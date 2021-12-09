@@ -1,20 +1,17 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { BaseStack, ElkPipelineStack } from '../lib/elk-pipeline-stack';
+import { BaseStack, OpenSearchLogStash, FileBeatStack } from '../lib/elk-pipeline-stack';
 
 const app = new cdk.App();
 
 const base = new BaseStack(app, 'BaseStack');
 
-/*new OpenSearchStack(app, 'OpenSearch', {
+const { openSearchLogStashInstance } = new OpenSearchLogStash(app, 'OpenSearchLogStash', {
     vpc: base.vpc
-});*/
+});
 
-/*new LogStashStack(app, 'LogStash', {
-    vpc: base.vpc
-});*/
-new ElkPipelineStack(app, 'ElkPipelineStack', {
+new FileBeatStack(app, 'FileBeatStack', {
     /* If you don't specify 'env', this stack will be environment-agnostic.
     * Account/Region-dependent features and context lookups will not work,
     * but a single synthesized template can be deployed anywhere. */
@@ -28,5 +25,6 @@ new ElkPipelineStack(app, 'ElkPipelineStack', {
     // env: { account: '123456789012', region: 'us-east-1' },
 
     /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
-    vpc: base.vpc
+    vpc: base.vpc,
+    logstashIP: openSearchLogStashInstance.instancePublicIp
 });

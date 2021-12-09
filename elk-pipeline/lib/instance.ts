@@ -52,7 +52,7 @@ export default class Ec2Instance {
                 subnets: this.props.vpc.publicSubnets
             },
             instanceName: `${STACK_NAME}-ec2-${options.name}`,
-            instanceType: InstanceType.of(InstanceClass.T3, InstanceSize.MEDIUM),
+            instanceType: options.instanceType,
             machineImage: new AmazonLinuxImage(),
             role,
             userData: this.instanceUserData,
@@ -70,7 +70,8 @@ export default class Ec2Instance {
             'sudo service docker start',
             'sudo usermod -a -G docker ec2-user',
             'sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose',
-            'sudo chmod +x /usr/local/bin/docker-compose'
+            'sudo chmod +x /usr/local/bin/docker-compose',
+            'ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose'
         );
 
         return userData;
