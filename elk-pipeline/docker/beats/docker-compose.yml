@@ -1,0 +1,23 @@
+version: '3.7'
+services:
+  filebeat:
+    user: root
+    container_name: filebeat
+    image: docker.elastic.co/beats/filebeat-oss:7.13.4-amd64
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /tmp/logs:/tmp/logs
+      - /tmp/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    command: ["--strict.perms=false"]
+  metricbeat:
+    user: root
+    container_name: metricbeat
+    image: docker.elastic.co/beats/metricbeat-oss:7.13.4-amd64
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /proc:/hostfs/proc:ro
+      - /:/hostfs:ro
+      - /tmp/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+    command: ["--strict.perms=false", "-system.hostfs=/hostfs"]

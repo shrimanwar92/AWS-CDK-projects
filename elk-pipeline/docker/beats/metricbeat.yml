@@ -1,0 +1,28 @@
+metricbeat.modules:
+  - module: system
+    metricsets:
+      - cpu             # CPU usage
+      - load            # CPU load averages
+      - memory          # Memory usage
+      - network         # Network IO
+      - process         # Per process metrics
+      - process_summary # Process summary
+      - uptime          # System Uptime
+      - socket_summary  # Socket summary
+    enabled: true
+    period: 60s
+    processes: [ '.*' ]
+    cpu.metrics: [ "percentages" ]
+    core.metrics: [ "percentages" ]
+    process.include_top_n:
+      by_cpu: 5
+      by_memory: 5
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+
+
+output.logstash:
+  enabled: true
+  hosts: ["localhost:5044"]
