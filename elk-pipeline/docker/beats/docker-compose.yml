@@ -21,3 +21,10 @@ services:
       - /:/hostfs:ro
       - /tmp/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
     command: ["--strict.perms=false", "-system.hostfs=/hostfs"]
+  node-app:
+    container_name: node-app
+    image: shrimanwar92/node-app-elk
+    ports:
+      - '3000:3000'
+    volumes:
+      - /tmp/logs:/tmp/logs

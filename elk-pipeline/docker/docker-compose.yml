@@ -43,7 +43,6 @@ services:
       - opensearch
     volumes:
       - /tmp/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
-      #- /tmp/apache-log.log:/tmp/apache-log.log
 
 volumes:
   opensearch-data:

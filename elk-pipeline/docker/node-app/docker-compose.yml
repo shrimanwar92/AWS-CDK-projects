@@ -1,0 +1,9 @@
+version: '3.7'
+services:
+  node-app:
+    build:
+      context: .
+      dockerfile: node.dockerfile
+    image: shrimanwar92/node-app-elk
+    ports:
+      - '3000:3000'

@@ -111,6 +111,8 @@ export class AppStack extends Stack {
                 role: props.defaultEC2Role,
                 sg: props.defaultEC2SecurityGroup
             });
+
+            props.defaultEC2SecurityGroup.addIngressRule(Peer.ipv4(MY_IP), Port.tcp(3000), "allow traffic from MY IP to 3000");
         }
     }
 
@@ -124,7 +126,7 @@ export class AppStack extends Stack {
 
         const beatsDockerComposeAsset = new Asset(this, `beatsDockerComposeAsset-${options.name}`, {path: 'docker/beats/docker-compose.yml'});
         const fileBeatYmlAsset = new Asset(this, `fileBeatYml-${options.name}`, {path: 'docker/beats/filebeat.yml'});
-        const logAsset = new Asset(this, `logAsset-${options.name}`, {path: 'docker/logs/apache-log.log'});
+        // const logAsset = new Asset(this, `logAsset-${options.name}`, {path: 'docker/logs/apache-log.log'});
         const metricBeatYmlAsset = new Asset(this, `metricBeatYml-${options.name}`, {path: 'docker/beats/metricbeat.yml'});
 
         appInstance.userData.addS3DownloadCommand({
@@ -145,16 +147,16 @@ export class AppStack extends Stack {
             localFile: "/tmp/metricbeat.yml"
         });
 
-        appInstance.userData.addS3DownloadCommand({
+        /*appInstance.userData.addS3DownloadCommand({
             bucket: logAsset.bucket,
             bucketKey: logAsset.s3ObjectKey,
             localFile: "/tmp/logs/apache-log.log"
-        });
+        });*/
 
         fileBeatYmlAsset.grantRead(appInstance.role);
         metricBeatYmlAsset.grantRead(appInstance.role);
         beatsDockerComposeAsset.grantRead(appInstance.role);
-        logAsset.grantRead(appInstance.role);
+        //logAsset.grantRead(appInstance.role);
 
         appInstance.userData.addCommands(
             //'TOKEN=`curl -X PUT -s "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`',
