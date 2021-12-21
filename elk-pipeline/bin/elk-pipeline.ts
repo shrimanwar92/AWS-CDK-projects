@@ -17,7 +17,8 @@ const appStack = new AppStack(app, 'AppStack', {
     logstashIP: openSearchLogStashInstanceStack.openSearchLogStashInstance.instancePublicIp,
     defaultEC2SecurityGroup: baseStack.defaultEC2SecurityGroup,
     defaultEC2Role: baseStack.defaultEC2Role,
-    metricBeatRole: baseStack.metricBeatRole
+    metricBeatRole: baseStack.metricBeatRole,
+    ossSecurityGroupId: openSearchLogStashInstanceStack.openSearchSecurityGroup.securityGroupId
 });
 
 openSearchLogStashInstanceStack.addDependency(baseStack); // opensearch-logstash stack depends on base stack for vpc
