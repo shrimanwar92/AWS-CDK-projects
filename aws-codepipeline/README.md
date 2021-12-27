@@ -12,8 +12,11 @@ deploys the code to aws fargarte as ECS container service.
 ## Commands to deploy the stack
 ### Deploying pipeline
 ###`1. npx cdk synth AwsCodepipelineStack --context githubToken=<github-oauth-token> --context step=build`
+
 ###`2. npx cdk deploy AwsCodepipelineStack --context githubToken=<github-oauth-token> --context step=build`
+
 ###`3. npx cdk synth AwsCodepipelineStack --context githubToken=<github-oauth-token> --context step=deploy`
+
 ###`4. npx cdk deploy AwsCodepipelineStack --context githubToken=<github-oauth-token> --context step=deploy`
 
 ### Deleting pipeline
