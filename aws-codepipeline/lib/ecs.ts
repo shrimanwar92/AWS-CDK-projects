@@ -1,7 +1,7 @@
 import {ApplicationLoadBalancedFargateService} from "aws-cdk-lib/aws-ecs-patterns";
 import {Cluster, ContainerImage, FargateService} from "aws-cdk-lib/aws-ecs";
 import {Stack} from "aws-cdk-lib";
-import {STACK_NAME, PipelineContainerImage} from "./utils";
+import {STACK_NAME} from "./utils";
 import {IRepository} from "aws-cdk-lib/aws-ecr";
 import {ManagedPolicy} from "aws-cdk-lib/aws-iam";
 

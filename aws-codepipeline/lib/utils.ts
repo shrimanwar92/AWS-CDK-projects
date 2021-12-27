@@ -1,6 +1,6 @@
 export const STACK_NAME = "cpl";
 export const GITHUB = {
-    owner: "repo-owner",
-    repo: "repo-name"
+    owner: "shrimanwar92",
+    repo: "node-app-aws-codepipeline"
 };
 export const REPO_NAME = "web";
