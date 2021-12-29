@@ -2,7 +2,7 @@ import {Stack, StackProps} from "aws-cdk-lib";
 import {Artifact, StageOptions} from "aws-cdk-lib/aws-codepipeline";
 import {CodeBuildAction} from "aws-cdk-lib/aws-codepipeline-actions";
 import {ManagedPolicy} from "aws-cdk-lib/aws-iam";
-import {BuildSpec, LinuxBuildImage, PipelineProject} from "aws-cdk-lib/aws-codebuild";
+import {BuildSpec, Cache, LinuxBuildImage, LocalCacheMode, PipelineProject} from "aws-cdk-lib/aws-codebuild";
 import {STACK_NAME, REPO_NAME} from "./utils";
 import {Repository} from "aws-cdk-lib/aws-ecr";
 
@@ -78,7 +78,7 @@ export default class BuildStage {
                             'echo Build completed on `date`',
                             'echo Pushing the Docker image...',
                             'docker-compose push',
-                            //'printf \'{"ImageURI":"%s"}\' $ECR_REPO:latest > imageDetail.json',
+                            'printf \'{"ImageURI":"%s"}\' $ECR_REPO_URL:latest > imageDetail.json',
                             'printf \'[{"name":"web","imageUri":"%s"}]\' $ECR_REPO_URL:latest > imagedefinitions.json',
                             'echo Pushing Docker Image completed on `date`'
                         ]
@@ -86,12 +86,14 @@ export default class BuildStage {
                 },
                 artifacts: {
                     files: [
-                        //'imageDetail.json',
-                        'imagedefinitions.json'
+                        'appspec.yaml',
+                        'taskdef.json',
+                        'imagedefinitions.json',
+                        'imageDetail.json'
                     ]
                 }
             }),
-            //cache: Cache.local(LocalCacheMode.DOCKER_LAYER, LocalCacheMode.CUSTOM),
+            cache: Cache.local(LocalCacheMode.DOCKER_LAYER, LocalCacheMode.CUSTOM),
         });
 
         codeBuildProject.role?.addManagedPolicy(
