@@ -1,4 +1,4 @@
-##ELK Stack
+## ELK Stack
 
 Amazon Opensearch Service is used to setup the open source Elastic Search infrastructure. 
 
