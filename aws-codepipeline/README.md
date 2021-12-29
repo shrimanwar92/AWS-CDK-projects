@@ -2,6 +2,14 @@
 This project constructs a codepipeline that fetches code from github, builds the project and
 deploys the code to aws fargarte as ECS container service.
 
+## Requirements
+1) This project uses github as a source so make sure github project is present.
+2) Generate a oauth token so that AWS can fetch the code from github abd build it.
+3) A local project copy should be present to deploy the initial image to github while doing `npm run create-ecr`.
+4) Use of container for the project.
+5) This project uses this repo: https://github.com/shrimanwar92/node-app-aws-codepipeline
+6) Update `lib/utils.ts` as per your needs.
+
 <!-- ##Use local tools
 ###Initialize project: `npx aws-cdk init --language typescript`
 
