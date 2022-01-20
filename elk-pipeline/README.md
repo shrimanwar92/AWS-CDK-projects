@@ -10,11 +10,18 @@ Logstash listens for beats data on port 5044 and the logstash output is configur
 
 Access to EC2 instances, logstash and opensearch is controlled by setting least previlge security group policies.
 
-## Useful commands
+## Application related architecture
+Once synthesised, this app generates 3 stacks. The purpose of using separate stacks is for easier development so that if some error occurs in stack deployment then we can re-deploy the erroneous stack only.
 
- * `npm run build`   compile typescript to js
- * `npm run watch`   watch for changes and compile
- * `npm run test`    perform the jest unit tests
+The 3 deployed stacks are:
+
+ * `BaseStack` which creates basic infra like roles, vpc, IGW, etc.
+ * `OpenSearchLogStash` creates stack containing LogStash & Opensearch service. Logstash listening on 5044 port.
+ * `AppStack` creates application instances with metricbeat and filebeat installed. These instances send log data to logstash on port 5044.
+
+After successful deployment, open Dashboards on port 5601 on `OpenSearchLogStash` instance IP. Open application on port 3000 on `AppStack` IP's.
+
+## Useful commands
  * `cdk deploy`      deploy this stack to your default AWS account/region
  * `cdk diff`        compare deployed stack with current state
  * `cdk synth`       emits the synthesized CloudFormation template
