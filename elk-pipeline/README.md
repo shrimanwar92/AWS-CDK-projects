@@ -15,7 +15,7 @@ Once synthesised, this app generates 3 stacks. The purpose of using separate sta
 
 The 3 deployed stacks are:
 
- * `BaseStack` which creates basic infra like roles, vpc, IGW, etc.
+ * `BaseStack` which creates basic infra like roles, vpc, IGW, Subnets, Route table, etc.
  * `OpenSearchLogStash` creates stack containing LogStash & Opensearch service. Logstash listening on 5044 port.
  * `AppStack` creates application instances with metricbeat and filebeat installed. These instances send log data to logstash on port 5044.
 
